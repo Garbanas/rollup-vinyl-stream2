@@ -47,7 +47,10 @@ function requireRollupBundle(result, input) {
   finally { require.extensions['.js'] = defaultLoader; }
 }
 
-function createVinylFile(rollupSource, vinylOpts = {}, fileName, output = {}) {
+function createVinylFile(rollupSource, vinylOpts, fileName, output) {
+  vinylOpts = (typeof vinylOpts !== 'undefined') ? vinylOpts : {};
+  output = (typeof output !== 'undefined') ? output : {};
+
   let filePath;
   // This is multiple inputs
   if (output.dir) {
@@ -96,6 +99,7 @@ function createOutputBundler(bundle, opts, vinylOpts) {
 }
 
 module.exports = function rollupVinylStream(options = {}) {
+  options = (typeof options !== 'undefined') ? options : {};
   if (typeof options === 'string') {
     options = {
       config: options,

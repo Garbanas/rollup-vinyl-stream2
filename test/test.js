@@ -38,7 +38,9 @@ describe("rollup-vinyl-stream2", function() {
   it("should return a stream of vinyl files", function() {
     const options = {
       input : './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       plugins: [hypothetical({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
@@ -57,7 +59,9 @@ describe("rollup-vinyl-stream2", function() {
   it("should return a stream of buffered vinyl files", function() {
     const options = {
       input : './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       plugins: [hypothetical({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
@@ -98,7 +102,9 @@ describe("rollup-vinyl-stream2", function() {
   it("should take a snapshot of options when the function is called", function() {
     const options = {
       input : './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       plugins: [hypothetical({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
@@ -135,7 +141,9 @@ describe("rollup-vinyl-stream2", function() {
   it("shouldn't raise an alarm when options.rollup is passed", function() {
     return collect(rollup({
       input : './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       rollup: require('rollup'),
       plugins: [{
         resolveId: function(id) {
@@ -170,7 +178,9 @@ describe("rollup-vinyl-stream2", function() {
   it("should emit a 'bundle' event when the bundle is output", function(done) {
     const s = rollup({
       input : './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       plugins: [{
         resolveId: function(id) {
           return id;
@@ -183,7 +193,7 @@ describe("rollup-vinyl-stream2", function() {
     let bundled = false;
     s.on('bundle', function(bundle) {
       bundled = true;
-      bundle.generate({ format: 'es' }).then(function(result) {
+      bundle.generate({ output: { format: 'es' } }).then(function(result) {
         if(/Hello, World!/.test(result.code)) {
           done();
         } else {
@@ -206,8 +216,10 @@ describe("sourcemaps", function() {
   it("should be added when options.sourcemap is true", function() {
     return collect(rollup({
       input: './entry.js',
-      format: 'es',
-      sourcemap: true,
+      output: {
+        format: 'es',
+        sourcemap: true,
+      },
       plugins: [{
         resolveId: function(id) {
           return id;
@@ -226,7 +238,9 @@ describe("sourcemaps", function() {
   it("should not be added otherwise", function() {
     return collect(rollup({
       input: './entry.js',
-      format: 'es',
+      output: {
+        format: 'es',
+      },
       plugins: [{
         resolveId: function(id) {
           return id;

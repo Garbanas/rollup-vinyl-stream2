@@ -29,12 +29,11 @@ const rollupStream = require('rollup-vinyl-stream2');
 
 gulp.task('rollup', () => 
   rollupStream({
-     input: './src/main.js',
-     output: {
-         format: 'umd',
-     },
+    input: './src/main.js',
+    output: {
+      format: 'umd',
+    },
   })
-  
   // Output to ./dist/main.js
   .pipe(gulp.dest('./dist'))
 );
@@ -59,7 +58,6 @@ gulp.task('rollup', () =>
     experimentalCodeSplitting: true,
     experimentalDynamicImport: true,
   })
-
   // Output to ./dist/main.js
   .pipe(gulp.dest('./dist'))
 );

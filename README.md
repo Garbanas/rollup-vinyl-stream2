@@ -122,8 +122,6 @@ gulp.task('rollup', () =>
 const gulp         = require('gulp');
 const rollupStream = require('rollup-vinyl-stream2');
 const sourcemaps   = require('gulp-sourcemaps');
-// const rename       = require('gulp-rename');
-const buffer       = require('vinyl-buffer');
 
 gulp.task('rollup', () =>
   rollupStream({
@@ -133,22 +131,14 @@ gulp.task('rollup', () =>
     },
   })
 
-  // buffer the output. most gulp plugins, including gulp-sourcemaps, don't support streams.
-  .pipe(buffer())
-
   // tell gulp-sourcemaps to load the sourcemaps produced by rollup-vinyl-stream2.
   .pipe(sourcemaps.init({ loadMaps: true }))
-
-        // transform the code further here.
-
-    // if you want to output with a different name from the input file, use gulp-rename here.
-//  .pipe(rename('index.js'))
 
   // write the sourcemap alongside the output file.
   .pipe(sourcemaps.write('.'))
 
   // and output to ./dist/main.js as normal.
-  .pipe(gulp.dest('./dist'));
+  .pipe(gulp.dest('./dist'))
 );
 ```
 
@@ -172,7 +162,7 @@ const rollupStream = require('rollup-vinyl-stream2');
 gulp.task('rollup', () =>
   rollupStream('./rollup.config.js')
   .pipe(gulp.dest('./dist'))
-};
+);
 ```
 
 ## Usage with caching

@@ -98,7 +98,7 @@ function createOutputBundler(bundle, opts, vinylOpts) {
   };
 }
 
-module.exports = function rollupVinylStream(options = {}) {
+module.exports = function rollupVinylStream(options) {
   options = (typeof options !== 'undefined') ? options : {};
   if (typeof options === 'string') {
     options = {

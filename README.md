@@ -5,7 +5,7 @@ makes using Rollup with [gulp] easier.
 This package is based on [rollup-stream] and [rollup-vinyl-stream], and has been
 modified to include [Rollup] as a peer-dependency as well as to support
 multiple outputs with the [Rollup] output options and / or the new experimental
-options `experimentalCodeSplitting` and `experimentalDynamicImport`.
+option `experimentalCodeSplitting`.
 
 The options object is passed to Rollup's rollup() and generate() methods. This
 currently works because there's no overlap between the names of the options
@@ -56,7 +56,7 @@ gulp.task('rollup', () =>
       format: 'umd',
     },
     experimentalCodeSplitting: true,
-    experimentalDynamicImport: true,
+    inlineDynamicImports: true,
   })
   // Output to ./dist/main.js
   .pipe(gulp.dest('./dist'))
@@ -109,7 +109,7 @@ gulp.task('rollup', () =>
       },
     ],
     experimentalCodeSplitting: true,
-    experimentalDynamicImport: true,
+    inlineDynamicImports: true,
   })
   .pipe(gulp.dest('./dist'))
 );

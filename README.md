@@ -55,7 +55,6 @@ gulp.task('rollup', () =>
     output: {
       format: 'umd',
     },
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   // Output to ./dist/main.js
@@ -108,7 +107,6 @@ gulp.task('rollup', () =>
         format: 'system',
       },
     ],
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   .pipe(gulp.dest('./dist'))

@@ -1,5 +1,12 @@
 # rollup-vinyl-stream2 changelog
 
+## 1.2.0
+*2019-07-06*
+
+* [BREAKING] Upgraded [Rollup] peer dependency to version 1.16.6
+* Filename fix
+* Updated Readme
+
 ## 1.1.0
 *2018-06-07*
 

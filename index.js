@@ -47,7 +47,14 @@ function requireRollupBundle(result, input) {
   finally { require.extensions['.js'] = defaultLoader; }
 }
 
-function createVinylFile(rollupSource, vinylOpts, fileName, output) {
+/**
+ * @param {OutputChunk | OutputFile} outputFile
+ * @param vinylOpts
+ * @param {string} fileName
+ * @param output
+ * @return {File}
+ */
+function createVinylFile(outputFile, vinylOpts, fileName, output) {
   vinylOpts = (typeof vinylOpts !== 'undefined') ? vinylOpts : {};
   output = (typeof output !== 'undefined') ? output : {};
 
@@ -66,13 +73,24 @@ function createVinylFile(rollupSource, vinylOpts, fileName, output) {
     filePath = path.resolve('./main.js');
   }
 
+  let bufferedFileContent;
+  let sourceMap;
+  if (typeof outputFile === 'string') {
+    bufferedFileContent = Buffer.from(outputFile);
+  } else if (Buffer.isBuffer(outputFile)) {
+    bufferedFileContent = outputFile;
+  } else { // It's an OutputChunk!
+    bufferedFileContent = Buffer.from(outputFile.code);
+    sourceMap = outputFile.map;
+  }
+
   const file = new File(Object.assign({}, vinylOpts, {
     path:     filePath,
-    contents: Buffer.from(rollupSource.code),
+    contents: bufferedFileContent,
   }));
 
-  if (rollupSource.map) {
-    file.sourceMap = rollupSource.map;
+  if (sourceMap) {
+    file.sourceMap = sourceMap;
   }
 
   return file;
@@ -82,17 +100,15 @@ function createOutputBundler(bundle, opts, vinylOpts) {
   return (output) => {
     return bundle
       .generate(Object.assign({}, opts, output))
-      .then(result => {
-        let files;
-        if (typeof result.code === 'undefined' && !result.map) {
-          files = Object
-            .keys(result)
-            .map(chunkName => createVinylFile(result[chunkName], vinylOpts, chunkName, output))
-            ;
-        } else {
-          files = [ createVinylFile(result, vinylOpts, opts.input, output) ];
+      .then(/** @type {{output: OutputBundle} | OutputChunk} */result => {
+        if (result.output) {
+          const files = Object
+            .keys(result.output)
+            .map(index => createVinylFile(result.output[index], vinylOpts, result.output[index].fileName, output))
+          ;
+          return Promise.resolve(files);
         }
-        return Promise.resolve(files);
+        return Promise.resolve([ createVinylFile(result, vinylOpts, opts.input, output) ]);
       })
       ;
   };

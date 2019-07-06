@@ -104,7 +104,10 @@ function createOutputBundler(bundle, opts, vinylOpts) {
         if (result.output) {
           const files = Object
             .keys(result.output)
-            .map(index => createVinylFile(result.output[index], vinylOpts, result.output[index].fileName, output))
+            .map(index => {
+              const fileName = isNaN(index) ? index : result.output[index].fileName;
+              return createVinylFile(result.output[index], vinylOpts, fileName, output)
+            })
           ;
           return Promise.resolve(files);
         }

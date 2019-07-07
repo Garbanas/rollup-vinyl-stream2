@@ -1,5 +1,10 @@
 # rollup-vinyl-stream2 changelog
 
+## 1.2.1
+*2019-07-08*
+
+* Fixed the import of custom rollup config files
+
 ## 1.2.0
 *2019-07-06*
 

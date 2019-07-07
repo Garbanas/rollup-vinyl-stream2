@@ -1,7 +1,4 @@
 # rollup-vinyl-stream2 [![npm][npm-image]][npm-url] [![Dependency Status][david-image]][david-url] [![Build Status][travis-image]][travis-url]
-
-**Fork from https://github.com/Garbanas/rollup-vinyl-stream2**
-
 This is a wrapper around [Rollup] that returns a readable vinyl stream and
 makes using Rollup with [gulp] easier.
 
@@ -58,7 +55,6 @@ gulp.task('rollup', () =>
     output: {
       format: 'umd',
     },
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   // Output to ./dist/main.js
@@ -111,7 +107,6 @@ gulp.task('rollup', () =>
         format: 'system',
       },
     ],
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   .pipe(gulp.dest('./dist'))

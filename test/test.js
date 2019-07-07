@@ -28,7 +28,7 @@ describe("rollup-vinyl-stream2", function() {
   it("should export a function", function() {
     expect(rollup).to.be.a('function');
   });
-  
+
   it("should return a stream", function() {
     const s = rollup();
     s.on('error', function(err) {});
@@ -49,11 +49,13 @@ describe("rollup-vinyl-stream2", function() {
       })]
     };
     const s = rollup(options);
-    return collect(s).then(function (result) {
-      result.files.forEach(function(file){
-        expect(file).to.be.an.instanceof(File);
-      })
-    });
+
+    return collect(s)
+      .then(function (result) {
+        result.files.forEach(function(file){
+          expect(file).to.be.an.instanceof(File);
+        })
+      });
   });
 
   it("should return a stream of buffered vinyl files", function() {
@@ -70,19 +72,23 @@ describe("rollup-vinyl-stream2", function() {
       })]
     };
     const s = rollup(options);
-    return collect(s).then(function (result) {
-      result.files.forEach(function(file){
-        expect(file.isBuffer()).to.equal(true);
-      })
-    });
+
+    return collect(s)
+      .then(function (result) {
+        result.files.forEach(function(file){
+          expect(file.isBuffer()).to.equal(true);
+        })
+      });
   });
 
   it("should emit an error if options isn't passed", function(done) {
     const s = rollup();
+
     s.on('error', function(err) {
       expect(err.message).to.equal("You must supply options.input to rollup");
       done();
     });
+
     s.on('data', function() {
       done(Error("No error was emitted."));
     });
@@ -90,10 +96,12 @@ describe("rollup-vinyl-stream2", function() {
 
   it("should emit an error if options.input isn't present", function(done) {
     const s = rollup({});
+
     s.on('error', function(err) {
       expect(err.message).to.equal("You must supply options.input to rollup");
       done();
     });
+
     s.on('data', function() {
       done(Error("No error was emitted."));
     });
@@ -114,9 +122,11 @@ describe("rollup-vinyl-stream2", function() {
     };
     const s = rollup(options);
     options.input = './nonexistent.js';
-    return collect(s).then(function(result) {
-      expect(result.data).to.have.string('Hello, World!');
-    });
+
+    return collect(s)
+      .then(function(result) {
+        expect(result.data).to.have.string('Hello, World!');
+      });
   });
 
   it("should use a custom Rollup if options.rollup is passed", function() {
@@ -133,27 +143,32 @@ describe("rollup-vinyl-stream2", function() {
         }
       }
     };
-    return collect(rollup(options)).then(function(result) {
-      expect(result.data).to.equal('fake code');
-    });
+
+    return collect(rollup(options))
+      .then(function(result) {
+        expect(result.data).to.equal('fake code');
+      });
   });
 
   it("shouldn't raise an alarm when options.rollup is passed", function() {
-    return collect(rollup({
-      input : './entry.js',
-      output: {
-        format: 'es',
-      },
-      rollup: require('rollup'),
-      plugins: [{
-        resolveId: function(id) {
-          return id;
+    return collect(
+      rollup({
+        input : './entry.js',
+        output: {
+          format: 'es',
         },
-        load: function() {
-          return 'console.log("Hello, World!");';
-        }
-      }]
-    })).then(function(result) {
+        rollup: require('rollup'),
+        plugins: [{
+          resolveId: function(id) {
+            return id;
+          },
+          load: function() {
+            return 'console.log("Hello, World!");';
+          }
+        }]
+      })
+    )
+    .then(function(result) {
       expect(result.data).to.have.string('Hello, World!');
     });
   });
@@ -166,10 +181,12 @@ describe("rollup-vinyl-stream2", function() {
 
   it("should reject with any error thrown by the config file", function(done) {
     const s = rollup('test/fixtures/throws.js');
+
     s.on('error', function(err) {
       expect(err.message).to.include("bah! humbug");
       done();
     });
+
     s.on('data', function() {
       done(Error("No error was emitted."));
     });
@@ -190,22 +207,25 @@ describe("rollup-vinyl-stream2", function() {
         }
       }]
     });
+
     let bundled = false;
     s.on('bundle', function(bundle) {
       bundled = true;
       bundle.generate({ output: { format: 'es' } }).then(function(result) {
-        if(/Hello, World!/.test(result.code)) {
+        if (/Hello, World!/.test(result.output[0].code)) {
           done();
         } else {
           done(Error("The bundle doesn't contain the string \"Hello, World!\""));
         }
       }).catch(done.fail);
     });
+
     s.on('error', function(err) {
       done(Error(err));
     });
+
     s.on('data', function() {
-      if(!bundled) {
+      if (!bundled) {
         done(Error("No 'bundle' event was emitted."));
       }
     });
@@ -214,21 +234,24 @@ describe("rollup-vinyl-stream2", function() {
 
 describe("sourcemaps", function() {
   it("should be added when options.sourcemap is true", function() {
-    return collect(rollup({
-      input: './entry.js',
-      output: {
-        format: 'es',
-        sourcemap: true,
-      },
-      plugins: [{
-        resolveId: function(id) {
-          return id;
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
+          sourcemap: true,
         },
-        load: function() {
-          return 'console.log("Hello, World!");';
-        }
-      }]
-    })).then(function (result) {
+        plugins: [{
+          resolveId: function(id) {
+            return id;
+          },
+          load: function() {
+            return 'console.log("Hello, World!");';
+          }
+        }]
+      })
+    )
+    .then(function (result) {
       result.files.forEach(function(file) {
         expect(file).to.have.property('sourceMap');
       });
@@ -236,20 +259,23 @@ describe("sourcemaps", function() {
   });
 
   it("should not be added otherwise", function() {
-    return collect(rollup({
-      input: './entry.js',
-      output: {
-        format: 'es',
-      },
-      plugins: [{
-        resolveId: function(id) {
-          return id;
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
         },
-        load: function() {
-          return 'console.log("Hello, World!");';
-        }
-      }]
-    })).then(function(result) {
+        plugins: [{
+          resolveId: function(id) {
+            return id;
+          },
+          load: function() {
+            return 'console.log("Hello, World!");';
+          }
+        }]
+      })
+    )
+    .then(function(result) {
       result.files.forEach(function(file) {
         expect(file).to.not.have.property('sourceMap');
       });

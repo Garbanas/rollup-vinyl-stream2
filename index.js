@@ -2,6 +2,7 @@
 
 const through2 = require('through2').obj;
 const path = require('path');
+const requireFromString = require('require-from-string');
 const File = require('vinyl');
 
 const streamKeys = ['rollup', 'vinyl', 'config'];
@@ -10,41 +11,30 @@ function loadOptions(options, rollup, streamEmit) {
   const filteredOptions = {};
   Object
     .keys(options)
-    .filter(key => -1 === streamKeys.indexOf(key))
-    .forEach(key => filteredOptions[key] = options[key]);
+    .filter((key) => (-1 === streamKeys.indexOf(key)))
+    .forEach((key) => {
+      filteredOptions[key] = options[key]
+    });
 
-  const config = options.config ? loadRollupConfig(path.resolve(options.config), rollup, streamEmit) : Promise.resolve({});
+  const config = options.config
+    ? loadRollupConfig(path.resolve(options.config), rollup, streamEmit)
+    : Promise.resolve({});
 
-  return config.then(config => Object.assign(config, filteredOptions));
+  return config
+    .then((config) => Object.assign(config, filteredOptions));
 }
 
 function loadRollupConfig(input, rollup, streamEmit) {
-  const ignorable = error => error.code === 'UNRESOLVED_IMPORT';
-  const onwarn    = error => ignorable(error) || console.warn(error.toString());
+  const ignorable = (error) => error.code === 'UNRESOLVED_IMPORT';
+  const onwarn    = (error) => ignorable(error) || console.warn(error.toString());
 
   return rollup
     .rollup({ input, onwarn })
-    .then(bundle => bundle.generate({ format: 'cjs' }))
-    .then(result => requireRollupBundle(result, input))
+    .then((bundle) => bundle.generate({ format: 'cjs' }))
+    .then((result) => requireFromString(result.output[0].code, input))
     .then(streamEmit('config'))
-    .then(config => (Object.assign({}, config)))
+    .then((config) => (Object.assign({}, config)))
     ;
-}
-
-function requireRollupBundle(result, input) {
-  // don't look at me. this is how Rollup does it.
-  const defaultLoader = require.extensions['.js'];
-
-  require.extensions['.js'] = (module, filename) => {
-    if (filename === input) {
-      module._compile(result.code, filename);
-    } else {
-      defaultLoader(module, filename);
-    }
-  };
-
-  try     { return require(input); }
-  finally { require.extensions['.js'] = defaultLoader; }
 }
 
 /**
@@ -100,11 +90,11 @@ function createOutputBundler(bundle, opts, vinylOpts) {
   return (output) => {
     return bundle
       .generate(Object.assign({}, opts, output))
-      .then(/** @type {{output: OutputBundle} | OutputChunk} */result => {
+      .then((/** @type {{output: OutputBundle} | OutputChunk} */result) => {
         if (result.output) {
           const files = Object
             .keys(result.output)
-            .map(index => {
+            .map((index) => {
               const fileName = isNaN(index) ? index : result.output[index].fileName;
               return createVinylFile(result.output[index], vinylOpts, fileName, output)
             })
@@ -126,16 +116,17 @@ module.exports = function rollupVinylStream(options) {
   }
 
   const stream     = through2();
-  const streamEmit = name => obj => { stream.emit(name, obj); return obj; };
+  const streamEmit = (name) => (obj) => { stream.emit(name, obj); return obj; };
   const rollup     = options.rollup || require('rollup');
   const vinylOpts  = options.vinyl || {};
   const rollupOpts = loadOptions(options, rollup, streamEmit);
 
   rollupOpts
-    .then(opts => rollup
+    .then((opts) =>
+      rollup
       .rollup(opts)
       .then(streamEmit('bundle'))
-      .then(bundle => {
+      .then((bundle) => {
         const bundleOutput = createOutputBundler(bundle, opts, vinylOpts);
         let outputs;
         if (opts.output) {
@@ -145,7 +136,7 @@ module.exports = function rollupVinylStream(options) {
         }
         return Promise.all(outputs.map(bundleOutput));
       })
-      .then(bundleOutputs => {
+      .then((bundleOutputs) => {
         bundleOutputs.forEach(files => files.forEach(file => stream.push(file)));
         stream.push(null);
       })

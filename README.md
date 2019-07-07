@@ -27,7 +27,7 @@ yarn add rollup rollup-vinyl-stream2
 const gulp         = require('gulp');
 const rollupStream = require('rollup-vinyl-stream2');
 
-gulp.task('rollup', () => 
+gulp.task('rollup', () =>
   rollupStream({
     input: './src/main.js',
     output: {
@@ -45,7 +45,7 @@ gulp.task('rollup', () =>
 const gulp         = require('gulp');
 const rollupStream = require('rollup-vinyl-stream2');
 
-gulp.task('rollup', () => 
+gulp.task('rollup', () =>
   rollupStream({
     input: [
       './src/main.js',
@@ -55,7 +55,6 @@ gulp.task('rollup', () =>
     output: {
       format: 'umd',
     },
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   // Output to ./dist/main.js
@@ -108,7 +107,6 @@ gulp.task('rollup', () =>
         format: 'system',
       },
     ],
-    experimentalCodeSplitting: true,
     inlineDynamicImports: true,
   })
   .pipe(gulp.dest('./dist'))
@@ -169,7 +167,7 @@ const gulp         = require('gulp');
 const rollupStream = require('rollup-vinyl-stream2');
 let   cache;
 
-gulp.task('rollup', () => 
+gulp.task('rollup', () =>
   rollupStream({
     input: './src/main.js',
     cache,

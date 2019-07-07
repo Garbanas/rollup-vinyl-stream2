@@ -1,6 +1,6 @@
 {
   "name": "rollup-vinyl-stream2",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A wrapper around Rollup that returns a vinyl stream instead of a Promise",
   "main": "index.js",
   "scripts": {

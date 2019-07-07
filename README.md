@@ -200,7 +200,7 @@ gulp.task('rollup', () =>
 [npm-url]: https://npmjs.org/package/rollup-vinyl-stream2
 [npm-image]: https://img.shields.io/npm/v/rollup-vinyl-stream2.svg
 [david-url]: https://david-dm.org/Garbanas/rollup-vinyl-stream2
-[david-image]: https://img.shields.io/david/Garbanas/rollup-vinyl-stream2/master.svg
+[david-image]: https://david-dm.org/Garbanas/rollup-vinyl-stream2/status.svg
 [travis-url]: https://travis-ci.org/Garbanas/rollup-vinyl-stream2
 [travis-image]: https://img.shields.io/travis/Garbanas/rollup-vinyl-stream2/master.svg
 

@@ -39,7 +39,8 @@
     "chai": "^4.2.0",
     "mocha": "^6.1.4",
     "rollup": "^1.16.6",
-    "rollup-plugin-hypothetical": "^2.1.0"
+    "rollup-plugin-hypothetical": "^2.1.0",
+    "vinyl-sourcemaps-apply": "^0.2.1"
   },
   "files": [
     "index.js",

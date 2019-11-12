@@ -4,6 +4,7 @@ const through2 = require('through2').obj;
 const path = require('path');
 const requireFromString = require('require-from-string');
 const File = require('vinyl');
+const applySourceMap = require('vinyl-sourcemaps-apply');
 
 const streamKeys = ['rollup', 'vinyl', 'config'];
 
@@ -80,7 +81,7 @@ function createVinylFile(outputFile, vinylOpts, fileName, output) {
   }));
 
   if (sourceMap) {
-    file.sourceMap = sourceMap;
+    applySourceMap(file, sourceMap);
   }
 
   return file;

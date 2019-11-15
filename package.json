@@ -33,7 +33,8 @@
   "dependencies": {
     "require-from-string": "^2.0.2",
     "through2": "^2.0.0",
-    "vinyl": "^2.0.1"
+    "vinyl": "^2.0.1",
+    "vinyl-sourcemaps-apply": "^0.2.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",

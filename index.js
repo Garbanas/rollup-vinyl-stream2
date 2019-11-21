@@ -71,7 +71,7 @@ function createVinylFile(outputFile, vinylOpts, fileName, output) {
   } else if (Buffer.isBuffer(outputFile)) {
     bufferedFileContent = outputFile;
   } else { // It's an OutputChunk!
-    bufferedFileContent = Buffer.from(outputFile.code);
+    bufferedFileContent = Buffer.from(outputFile.code || outputFile.source);
     sourceMap = outputFile.map;
   }
 

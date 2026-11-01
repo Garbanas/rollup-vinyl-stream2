@@ -1,5 +1,16 @@
 # rollup-vinyl-stream2 changelog
 
+## 1.2.3
+*2026-11-01*
+
+* Fixed a crash when plugins emit assets: assets are now passed on as vinyl files, placed next to `output.file` if set (#6, thanks @TongChia)
+* Fixed input plugins also being run as output plugins (#7, thanks @kzar)
+
+## 1.2.2
+*2019-11-15*
+
+* Fixed sourcemaps not being applied to the vinyl files (#4, #5, thanks @TongChia)
+
 ## 1.2.1
 *2019-07-08*
 

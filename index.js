@@ -49,10 +49,19 @@ function createVinylFile(outputFile, vinylOpts, fileName, output) {
   vinylOpts = (typeof vinylOpts !== 'undefined') ? vinylOpts : {};
   output = (typeof output !== 'undefined') ? output : {};
 
+  // Assets (e.g. from this.emitFile) carry `source` instead of `code`
+  const isAsset = typeof outputFile === 'object'
+    && !Buffer.isBuffer(outputFile)
+    && 'source' in outputFile
+    && !('code' in outputFile);
+
   let filePath;
   // This is multiple inputs
   if (output.dir) {
     filePath = path.resolve(output.dir, fileName);
+  // Assets are placed next to output.file, like Rollup's write() does
+  } else if (output.file && isAsset) {
+    filePath = path.resolve(path.dirname(output.file), fileName);
   // This is multiple and / or named outputs
   } else if (output.file) {
     filePath = path.resolve(output.file);
@@ -70,6 +79,8 @@ function createVinylFile(outputFile, vinylOpts, fileName, output) {
     bufferedFileContent = Buffer.from(outputFile);
   } else if (Buffer.isBuffer(outputFile)) {
     bufferedFileContent = outputFile;
+  } else if (isAsset) { // It's an OutputAsset!
+    bufferedFileContent = Buffer.from(outputFile.source);
   } else { // It's an OutputChunk!
     bufferedFileContent = Buffer.from(outputFile.code);
     sourceMap = outputFile.map;
@@ -88,9 +99,12 @@ function createVinylFile(outputFile, vinylOpts, fileName, output) {
 }
 
 function createOutputBundler(bundle, opts, vinylOpts) {
+  // Input plugins must not be passed on as output plugins (#7)
+  const inheritedOpts = Object.assign({}, opts, { plugins: undefined });
+
   return (output) => {
     return bundle
-      .generate(Object.assign({}, opts, output))
+      .generate(Object.assign({}, inheritedOpts, output))
       .then((/** @type {{output: OutputBundle} | OutputChunk} */result) => {
         if (result.output) {
           const files = Object

@@ -1,15 +1,19 @@
-# rollup-vinyl-stream2 [![npm][npm-image]][npm-url] [![Dependency Status][david-image]][david-url] [![Build Status][travis-image]][travis-url]
+# rollup-vinyl-stream2 [![npm][npm-image]][npm-url] [![Test][ci-image]][ci-url]
 This is a wrapper around [Rollup] that returns a readable vinyl stream and
 makes using Rollup with [gulp] easier.
 
 This package is based on [rollup-stream] and [rollup-vinyl-stream], and has been
 modified to include [Rollup] as a peer-dependency as well as to support
-multiple outputs with the [Rollup] output options and / or the new experimental
-option `experimentalCodeSplitting`.
+multiple inputs (code splitting) and multiple outputs.
 
-The options object is passed to Rollup's rollup() and generate() methods. This
-currently works because there's no overlap between the names of the options
-those methods take. Hopefully that won't change any time soon!
+Version 2.x requires Rollup 4 (`^4.59.0`) and Node.js `^20.19.0 || >=22.12.0`.
+Use version 1.x for Rollup 1.
+
+The options object is passed to Rollup's `rollup()` method, and each entry of
+its `output` option (a single object or an array) is passed to
+`bundle.generate()`. Output options such as `format` or `sourcemap` therefore
+belong into `output`. Every generated chunk and asset is pushed into the stream
+as a vinyl file. Once all outputs are generated, the bundle is closed.
 
 ## Installation
 ```bash
@@ -53,11 +57,11 @@ gulp.task('rollup', () =>
       './src/entry3.js'
     ],
     output: {
-      format: 'umd',
+      dir:    'chunks',
+      format: 'es',
     },
-    inlineDynamicImports: true,
   })
-  // Output to ./dist/main.js
+  // Output to ./dist/chunks/main.js, ./dist/chunks/entry2.js, ...
   .pipe(gulp.dest('./dist'))
 );
 ```
@@ -107,7 +111,6 @@ gulp.task('rollup', () =>
         format: 'system',
       },
     ],
-    inlineDynamicImports: true,
   })
   .pipe(gulp.dest('./dist'))
 );
@@ -172,7 +175,7 @@ gulp.task('rollup', () =>
     input: './src/main.js',
     cache,
   })
-  .on('bundle', (bundle) => cache = bundle)
+  .on('bundle', (bundle) => cache = bundle.cache)
   .pipe(gulp.dest('./dist'))
 );
 
@@ -191,7 +194,7 @@ let   options      = { config: './rollup.config.js' };
 gulp.task('rollup', () =>
   rollupStream(options)
   .on('config', (config) => options = config)
-  .on('bundle', (bundle) => options.cache = bundle)
+  .on('bundle', (bundle) => options.cache = bundle.cache)
   .pipe(gulp.dest('./dist'))
 );
 ```
@@ -199,10 +202,8 @@ gulp.task('rollup', () =>
 
 [npm-url]: https://npmjs.org/package/rollup-vinyl-stream2
 [npm-image]: https://img.shields.io/npm/v/rollup-vinyl-stream2.svg
-[david-url]: https://david-dm.org/Garbanas/rollup-vinyl-stream2
-[david-image]: https://david-dm.org/Garbanas/rollup-vinyl-stream2/status.svg
-[travis-url]: https://travis-ci.org/Garbanas/rollup-vinyl-stream2
-[travis-image]: https://img.shields.io/travis/Garbanas/rollup-vinyl-stream2/master.svg
+[ci-url]: https://github.com/Garbanas/rollup-vinyl-stream2/actions/workflows/test.yml
+[ci-image]: https://github.com/Garbanas/rollup-vinyl-stream2/actions/workflows/test.yml/badge.svg
 
 [Rollup]: https://www.npmjs.com/package/rollup
 [gulp]: http://gulpjs.com/

@@ -4,7 +4,16 @@ const expect = require('chai').expect;
 const rollup = require('..');
 const stream = require('stream');
 const File = require('vinyl');
-const hypothetical = require('rollup-plugin-hypothetical');
+
+/** Minimal in-memory module plugin (replaces rollup-plugin-hypothetical) */
+function virtual(options) {
+  const files = options.files;
+  return {
+    name: 'virtual',
+    resolveId: (id) => (Object.prototype.hasOwnProperty.call(files, id) ? id : null),
+    load: (id) => (Object.prototype.hasOwnProperty.call(files, id) ? files[id] : null),
+  };
+}
 
 function collect(stream) {
   return new Promise(function(resolve, reject) {
@@ -41,7 +50,7 @@ describe("rollup-vinyl-stream2", function() {
       output: {
         format: 'es',
       },
-      plugins: [hypothetical({
+      plugins: [virtual({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
           './x.js': 'export default "Hello, World!";'
@@ -64,7 +73,7 @@ describe("rollup-vinyl-stream2", function() {
       output: {
         format: 'es',
       },
-      plugins: [hypothetical({
+      plugins: [virtual({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
           './x.js': 'export default "Hello, World!";'
@@ -113,7 +122,7 @@ describe("rollup-vinyl-stream2", function() {
       output: {
         format: 'es',
       },
-      plugins: [hypothetical({
+      plugins: [virtual({
         files: {
           './entry.js': 'import x from "./x.js"; console.log(x);',
           './x.js': 'export default "Hello, World!";'
@@ -211,13 +220,13 @@ describe("rollup-vinyl-stream2", function() {
     let bundled = false;
     s.on('bundle', function(bundle) {
       bundled = true;
-      bundle.generate({ output: { format: 'es' } }).then(function(result) {
+      bundle.generate({ format: 'es' }).then(function(result) {
         if (/Hello, World!/.test(result.output[0].code)) {
           done();
         } else {
           done(Error("The bundle doesn't contain the string \"Hello, World!\""));
         }
-      }).catch(done.fail);
+      }).catch(done);
     });
 
     s.on('error', function(err) {
@@ -279,6 +288,80 @@ describe("sourcemaps", function() {
       result.files.forEach(function(file) {
         expect(file).to.not.have.property('sourceMap');
       });
+    });
+  });
+});
+
+describe("rollup 4 output handling", function() {
+  const path = require('path');
+  const files = {
+    './entry.js': 'import x from "./x.js"; console.log(x); import("./lazy.js");',
+    './x.js': 'export default "Hello, World!";',
+    './lazy.js': 'console.log("lazy");'
+  };
+
+  it("should not emit a separate .map file or sourceMappingURL comment", function() {
+    return collect(rollup({
+      input: './x.js',
+      output: { format: 'es', sourcemap: true },
+      plugins: [virtual({ files })]
+    })).then(function(result) {
+      expect(result.files).to.have.lengthOf(1);
+      expect(result.data).to.not.include('sourceMappingURL');
+      expect(result.files[0].sourceMap).to.include.keys('version', 'mappings', 'sources', 'file');
+    });
+  });
+
+  it("should emit all chunks into output.dir", function() {
+    return collect(rollup({
+      input: './entry.js',
+      output: { format: 'es', dir: 'dist', chunkFileNames: 'chunks/[name].js' },
+      plugins: [virtual({ files })]
+    })).then(function(result) {
+      const paths = result.files.map((file) => path.relative(process.cwd(), file.path)).sort();
+      expect(paths).to.deep.equal([path.join('dist', 'chunks', 'lazy.js'), path.join('dist', 'entry.js')]);
+    });
+  });
+
+  it("should emit assets as vinyl files", function() {
+    return collect(rollup({
+      input: './x.js',
+      output: { format: 'es', dir: 'dist' },
+      plugins: [virtual({ files }), {
+        name: 'asset',
+        generateBundle() {
+          this.emitFile({ type: 'asset', fileName: 'hello.txt', source: 'Hello asset' });
+        }
+      }]
+    })).then(function(result) {
+      const asset = result.files.find((file) => file.basename === 'hello.txt');
+      expect(asset).to.be.an.instanceof(File);
+      expect(asset.contents.toString()).to.equal('Hello asset');
+    });
+  });
+
+  it("should support multiple outputs with output.file", function() {
+    return collect(rollup({
+      input: './x.js',
+      output: [
+        { file: 'dist/x.es.js', format: 'es' },
+        { file: 'dist/x.cjs.js', format: 'cjs' }
+      ],
+      plugins: [virtual({ files })]
+    })).then(function(result) {
+      const paths = result.files.map((file) => path.relative(process.cwd(), file.path)).sort();
+      expect(paths).to.deep.equal([path.join('dist', 'x.cjs.js'), path.join('dist', 'x.es.js')]);
+    });
+  });
+
+  it("should close the bundle after generating", function() {
+    let bundle;
+    return collect(
+      rollup({ input: './x.js', plugins: [virtual({ files })] })
+        .on('bundle', function(b) { bundle = b; })
+    ).then(function() {
+      expect(bundle.closed).to.equal(true);
+      expect(bundle.cache).to.be.an('object');
     });
   });
 });

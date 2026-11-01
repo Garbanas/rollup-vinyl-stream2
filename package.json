@@ -1,6 +1,6 @@
 {
   "name": "rollup-vinyl-stream2",
-  "version": "1.2.2",
+  "version": "2.0.0",
   "description": "A wrapper around Rollup that returns a vinyl stream instead of a Promise",
   "main": "index.js",
   "scripts": {
@@ -28,24 +28,24 @@
   },
   "homepage": "https://github.com/Garbanas/rollup-vinyl-stream2#readme",
   "peerDependencies": {
-    "rollup": "^1.16.6"
+    "rollup": "^4.59.0"
   },
   "dependencies": {
     "require-from-string": "^2.0.2",
-    "through2": "^2.0.0",
-    "vinyl": "^2.0.1",
-    "vinyl-sourcemaps-apply": "^0.2.1"
+    "vinyl": "^3.0.1"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
-    "mocha": "^6.1.4",
-    "rollup": "^1.16.6",
-    "rollup-plugin-hypothetical": "^2.1.0"
+    "chai": "^6.3.0",
+    "mocha": "^12.0.3",
+    "rollup": "^4.64.7"
   },
   "files": [
     "index.js",
     "LICENSE",
     "README.md",
     "package.json"
-  ]
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
 }

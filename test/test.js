@@ -2,6 +2,7 @@
 
 const expect = require('chai').expect;
 const rollup = require('..');
+const path = require('path');
 const stream = require('stream');
 const File = require('vinyl');
 
@@ -159,6 +160,25 @@ describe("rollup-vinyl-stream2", function() {
       });
   });
 
+  it("should accept Buffer code from a custom Rollup", function() {
+    const options = {
+      rollup: {
+        rollup: function() {
+          return Promise.resolve({
+            generate: function() {
+              return Promise.resolve({ code: Buffer.from('fake code') });
+            }
+          });
+        }
+      }
+    };
+
+    return collect(rollup(options))
+      .then(function(result) {
+        expect(result.data).to.equal('fake code');
+      });
+  });
+
   it("shouldn't raise an alarm when options.rollup is passed", function() {
     return collect(
       rollup({
@@ -241,6 +261,125 @@ describe("rollup-vinyl-stream2", function() {
   });
 });
 
+describe("plugins", function() {
+  it("should not run input plugins as output plugins", function() {
+    let renderChunkCalls = 0;
+    const warnings = [];
+
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
+        },
+        onwarn: function(warning) {
+          warnings.push(warning);
+        },
+        plugins: [{
+          resolveId: function(id) {
+            return id;
+          },
+          load: function() {
+            return 'console.log("Hello, World!");';
+          },
+          renderChunk: function() {
+            renderChunkCalls++;
+            return null;
+          }
+        }]
+      })
+    )
+    .then(function() {
+      expect(renderChunkCalls).to.equal(1);
+      expect(warnings.map(String).join('\n')).to.not.include('output plugin');
+    });
+  });
+
+  it("should still run output plugins", function() {
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
+          plugins: [{
+            renderChunk: function(code) {
+              return code + '\n// output plugin was here';
+            }
+          }]
+        },
+        plugins: [{
+          resolveId: function(id) {
+            return id;
+          },
+          load: function() {
+            return 'console.log("Hello, World!");';
+          }
+        }]
+      })
+    )
+    .then(function(result) {
+      expect(result.data).to.have.string('// output plugin was here');
+    });
+  });
+});
+
+describe("assets", function() {
+  const assetPlugin = {
+    resolveId: function(id) {
+      return id;
+    },
+    load: function() {
+      return 'console.log("Hello, World!");';
+    },
+    buildStart: function() {
+      this.emitFile({ type: 'asset', fileName: 'style.css', source: 'body { color: red; }' });
+    }
+  };
+
+  it("should emit assets as vinyl files", function() {
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
+          dir: 'dist',
+        },
+        plugins: [assetPlugin]
+      })
+    )
+    .then(function(result) {
+      const asset = result.files.find(function(file) {
+        return file.basename === 'style.css';
+      });
+      expect(asset).to.be.an.instanceof(File);
+      expect(asset.contents.toString()).to.equal('body { color: red; }');
+      expect(asset.path).to.equal(path.resolve('dist', 'style.css'));
+    });
+  });
+
+  it("should place assets next to output.file", function() {
+    return collect(
+      rollup({
+        input: './entry.js',
+        output: {
+          format: 'es',
+          file: 'dist/bundle.js',
+        },
+        plugins: [assetPlugin]
+      })
+    )
+    .then(function(result) {
+      const paths = result.files.map(function(file) {
+        return file.path;
+      });
+      expect(paths).to.have.members([
+        path.resolve('dist/bundle.js'),
+        path.resolve('dist/style.css'),
+      ]);
+    });
+  });
+});
+
 describe("sourcemaps", function() {
   it("should be added when options.sourcemap is true", function() {
     return collect(
@@ -293,7 +432,6 @@ describe("sourcemaps", function() {
 });
 
 describe("rollup 4 output handling", function() {
-  const path = require('path');
   const files = {
     './entry.js': 'import x from "./x.js"; console.log(x); import("./lazy.js");',
     './x.js': 'export default "Hello, World!";',
@@ -320,23 +458,6 @@ describe("rollup 4 output handling", function() {
     })).then(function(result) {
       const paths = result.files.map((file) => path.relative(process.cwd(), file.path)).sort();
       expect(paths).to.deep.equal([path.join('dist', 'chunks', 'lazy.js'), path.join('dist', 'entry.js')]);
-    });
-  });
-
-  it("should emit assets as vinyl files", function() {
-    return collect(rollup({
-      input: './x.js',
-      output: { format: 'es', dir: 'dist' },
-      plugins: [virtual({ files }), {
-        name: 'asset',
-        generateBundle() {
-          this.emitFile({ type: 'asset', fileName: 'hello.txt', source: 'Hello asset' });
-        }
-      }]
-    })).then(function(result) {
-      const asset = result.files.find((file) => file.basename === 'hello.txt');
-      expect(asset).to.be.an.instanceof(File);
-      expect(asset.contents.toString()).to.equal('Hello asset');
     });
   });
 

@@ -7,13 +7,13 @@
   Rollup security advisories [GHSA-gcx4-mw62-g8wm] (DOM clobbering XSS) and
   [GHSA-mw96-cpmx-2vgc] (path traversal file write).
 * [BREAKING] Requires Node.js `^20.19.0 || >=22.12.0`
-* [BREAKING] Only the `output` options are passed to `bundle.generate()`. Output
-  options (e.g. `format`, `sourcemap`, `inlineDynamicImports`) must be put into
-  `output` instead of the top level of the options object.
+* [BREAKING] Only the `output` options are passed to `bundle.generate()`. Top-level
+  output options are no longer inherited (1.2.3 only stopped inheriting `plugins`):
+  output options (e.g. `format`, `sourcemap`, `inlineDynamicImports`) must be put
+  into `output` instead of the top level of the options object.
 * [BREAKING] The bundle is closed (`bundle.close()`) once all outputs have been
   generated. `bundle.cache` stays usable, but `bundle.generate()` / `bundle.write()`
   can no longer be called later from a `bundle` event listener.
-* Emitted assets are now passed through the stream as vinyl files
 * Chunk file names (e.g. `chunkFileNames: 'chunks/[name].js'`) are preserved
   instead of being reduced to their base name
 * Source maps stay attached to the vinyl file (`file.sourceMap`); the separate
@@ -25,6 +25,17 @@
   mocha to 12 and chai to 6
 * Replaced Travis CI with GitHub Actions (Node.js 20, 22 and 24) and added
   `package-lock.json`
+
+## 1.2.3
+*2026-11-01*
+
+* Fixed a crash when plugins emit assets: assets are now passed on as vinyl files, placed next to `output.file` if set (#6, thanks @TongChia)
+* Fixed input plugins also being run as output plugins (#7, thanks @kzar)
+
+## 1.2.2
+*2019-11-15*
+
+* Fixed sourcemaps not being applied to the vinyl files (#4, #5, thanks @TongChia)
 
 ## 1.2.1
 *2019-07-08*

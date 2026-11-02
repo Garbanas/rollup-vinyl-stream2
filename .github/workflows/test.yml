@@ -1,0 +1,63 @@
+name: test
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Node ${{ matrix.node }} / rollup ${{ matrix.rollup }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24, 26]
+        # 1.16.6 is the lowest version allowed by peerDependencies
+        rollup: ['1.16.6', '1', '2', '3', '4']
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Install rollup@${{ matrix.rollup }}
+        run: npm i --no-save --no-audit --no-fund rollup@${{ matrix.rollup }}
+      - run: node -p "'rollup ' + require('rollup').VERSION"
+      - run: npm test
+
+  syntax:
+    name: ES2015 syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # index.js must keep running on the old Node versions users still have
+      - run: npm run check:syntax
+
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [test, syntax]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that all jobs succeeded
+        run: |
+          echo "test: ${{ needs.test.result }}, syntax: ${{ needs.syntax.result }}"
+          [ "${{ needs.test.result }}" = "success" ] && [ "${{ needs.syntax.result }}" = "success" ]

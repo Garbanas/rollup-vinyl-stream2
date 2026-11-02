@@ -1,0 +1,32 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # Major updates of runtime dependencies may drop Node versions that
+      # users of 1.x still run, so they need a deliberate major release.
+      - dependency-name: through2
+        update-types: [version-update:semver-major]
+      - dependency-name: vinyl
+        update-types: [version-update:semver-major]
+      - dependency-name: vinyl-sourcemaps-apply
+        update-types: [version-update:semver-major]
+      - dependency-name: require-from-string
+        update-types: [version-update:semver-major]
+      # The tested Rollup majors are defined by peerDependencies and the CI matrix
+      - dependency-name: rollup
+        update-types: [version-update:semver-major]
+      # chai 5+ is ESM-only
+      - dependency-name: chai
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

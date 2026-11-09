@@ -1,9 +1,13 @@
 version: 2
 updates:
+  # Covers pnpm too (it reads pnpm-lock.yaml). Dependabot doesn't apply pnpm's
+  # minimumReleaseAge, so cooldown keeps its PRs to versions at least 3 days old as well.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3
     groups:
       dev-dependencies:
         dependency-type: development
@@ -12,21 +16,23 @@ updates:
       # Major updates of runtime dependencies may drop Node versions that
       # users of 1.x still run, so they need a deliberate major release.
       - dependency-name: through2
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
       - dependency-name: vinyl
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
       - dependency-name: vinyl-sourcemaps-apply
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
       - dependency-name: require-from-string
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
       # The tested Rollup majors are defined by peerDependencies and the CI matrix
       - dependency-name: rollup
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
       # chai 5+ is ESM-only
       - dependency-name: chai
-        update-types: [version-update:semver-major]
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 3

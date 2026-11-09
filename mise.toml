@@ -1,0 +1,5 @@
+# Tool versions for developing this package. `mise install` sets them up.
+# CI tests the Node versions in .github/workflows/test.yml; users are not bound by these.
+[tools]
+node = "24.22.2"
+pnpm = "12.18.0"

@@ -255,6 +255,18 @@ gulp.task('rollup', () =>
 ```
 
 
+## Development
+
+Node and pnpm versions for working on this package are pinned in `mise.toml`:
+`mise install` sets them up, then `pnpm install` and `pnpm test`. CI runs the tests on
+Node 20 to 26 with Rollup 1.16.6, 1, 2, 3 and 4.
+
+Supply chain settings live in `pnpm-workspace.yaml`: new package versions are installed only
+once they're 3 days old (`minimumReleaseAge`, matched by Dependabot's `cooldown`), a version
+with weaker publish trust than its predecessors is refused (`trustPolicy`), and dependency
+install scripts need explicit approval. For an urgent fix, add that exact version to
+`minimumReleaseAgeExclude` rather than lowering the age.
+
 [npm-url]: https://npmjs.org/package/rollup-vinyl-stream2
 [npm-image]: https://img.shields.io/npm/v/rollup-vinyl-stream2.svg
 [ci-url]: https://github.com/Garbanas/rollup-vinyl-stream2/actions/workflows/test.yml

@@ -1,0 +1,22 @@
+# Single-package repo: this file only holds pnpm settings.
+
+# Supply chain: don't install versions younger than 3 days, so a hijacked release is
+# usually caught and pulled before it reaches us. For an urgent fix, list that exact
+# version under minimumReleaseAgeExclude instead of lowering this.
+minimumReleaseAge: 4320
+# Refuse a version published with weaker trust evidence (e.g. no provenance) than earlier ones.
+trustPolicy: no-downgrade
+# Rollup's official backport releases (dist-tags backports-2/backports-3) were published
+# without provenance after 4.x had it. CI installs them to test Rollup 2 and 3, so only
+# these exact versions are exempt; anything else from rollup is still checked.
+trustPolicyExclude:
+  - rollup@2.80.0
+  - rollup@3.30.0
+# Both default to true in pnpm 12; stated so they survive a change of defaults.
+strictDepBuilds: true
+blockExoticSubdeps: true
+
+# Dev-only: newer glob/minimatch for mocha, clearing audit findings in its old ones.
+overrides:
+  mocha>glob: ^14.0.3
+  mocha>minimatch: ^11.0.4

@@ -1,0 +1,55 @@
+name: dependabot auto-merge
+
+# Turns on auto-merge for Dependabot PRs that only touch tooling: minor and patch
+# updates of dev dependencies and of GitHub Actions. The PR still merges only once
+# the required ci-ok check passes (ruleset "Protect master"). Runtime dependency
+# updates reach users of the package, so they stay manual.
+
+on: pull_request
+
+permissions: {}
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # Both: the PR is Dependabot's, and Dependabot (not a person pushing to its
+    # branch) triggered this run
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor == 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - id: meta
+        # Pinned to a commit: this job holds a write token. v3.1.0
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98
+      - name: Enable auto-merge
+        if: >-
+          (steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+           steps.meta.outputs.update-type == 'version-update:semver-minor') &&
+          (steps.meta.outputs.dependency-type == 'direct:development' ||
+           steps.meta.outputs.package-ecosystem == 'github_actions')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}
+
+  # GitHub keeps auto-merge armed when someone with write access pushes to the
+  # branch, so a commit nobody reviewed would merge once CI passes. Disarm it;
+  # merge such a PR by hand.
+  disarm-on-human-push:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && github.actor != 'dependabot[bot]'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Disable auto-merge
+        run: |
+          if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = true ]; then
+            gh pr merge --disable-auto "$PR_URL"
+          else
+            echo "Auto-merge not enabled; nothing to do"
+          fi
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}

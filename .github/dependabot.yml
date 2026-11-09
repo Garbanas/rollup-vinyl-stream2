@@ -1,7 +1,8 @@
 version: 2
 updates:
-  # Covers pnpm too (it reads pnpm-lock.yaml). Dependabot doesn't apply pnpm's
-  # minimumReleaseAge, so cooldown keeps its PRs to versions at least 3 days old as well.
+  # Covers pnpm too (it reads pnpm-lock.yaml). Dependabot also reads minimumReleaseAge
+  # from pnpm-workspace.yaml, but uses this cooldown when it is at least as strict;
+  # keep both at 3 days so the setting is visible here.
   - package-ecosystem: npm
     directory: /
     schedule:
@@ -34,5 +35,6 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # No pnpm setting covers Actions, so this cooldown is the only release-age check here
     cooldown:
       default-days: 3
